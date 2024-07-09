@@ -11,6 +11,8 @@ import env from "dotenv";
 const app = express();
 const port = 3000;
 const saltRounds = 10;
+let currentUserEmail = "anyemail@company.com";
+
 env.config();
 
 app.use(
@@ -56,9 +58,16 @@ app.get("/logout", (req, res) => {
   });
 });
 
-app.get("/secrets", (req, res) => {
+app.get("/secrets", async (req, res) => {
+  try{
+    const secretText = await db.query("SELECT secret FROM users WHERE email = $1",[currentUserEmail]);
+  } catch (err){
+    console.error(err);
+  }
   if (req.isAuthenticated()) {
-    res.render("secrets.ejs");
+    res.render("secrets.ejs", {
+      secret: secretText
+    });
 
     //TODO: Update this to pull in the user secret to render in secrets.ejs
   } else {
@@ -113,6 +122,7 @@ app.post("/register", async (req, res) => {
             [email, hash]
           );
           const user = result.rows[0];
+          
           req.login(user, (err) => {
             console.log("success");
             res.redirect("/secrets");
@@ -137,6 +147,7 @@ passport.use(
       ]);
       if (result.rows.length > 0) {
         const user = result.rows[0];
+        currentUserEmail = result.rows[0].email;
         const storedHashedPassword = user.password;
         bcrypt.compare(password, storedHashedPassword, (err, valid) => {
           if (err) {
@@ -182,6 +193,7 @@ passport.use(
           return cb(null, newUser.rows[0]);
         } else {
           return cb(null, result.rows[0]);
+          currentUserEmail = profile.email;
         }
       } catch (err) {
         return cb(err);
