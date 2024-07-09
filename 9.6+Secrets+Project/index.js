@@ -59,10 +59,15 @@ app.get("/logout", (req, res) => {
 app.get("/secrets", (req, res) => {
   if (req.isAuthenticated()) {
     res.render("secrets.ejs");
+
+    //TODO: Update this to pull in the user secret to render in secrets.ejs
   } else {
     res.redirect("/login");
   }
 });
+
+//TODO: Add a get route for the submit button
+//Think about how the logic should work with authentication.
 
 app.get(
   "/auth/google",
@@ -119,6 +124,9 @@ app.post("/register", async (req, res) => {
     console.log(err);
   }
 });
+
+//TODO: Create the post route for submit.
+//Handle the submitted data and add it to the database
 
 passport.use(
   "local",
